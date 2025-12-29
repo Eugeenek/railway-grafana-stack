@@ -1,0 +1,70 @@
+# Production Prometheus Configuration for Railway
+# This file should be added to your forked Railway Grafana Stack repo
+#
+# To use: Fork https://github.com/MykalMachon/railway-grafana-stack
+# and replace prometheus/prometheus.yml with this file
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Alerting configuration (optional - configure Alertmanager separately)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+# Load alert rules
+# rule_files:
+#   - /etc/prometheus/rules/*.yml
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # ===========================================
+  # Shop Sync Services
+  # ===========================================
+  
+  # API - OpenTelemetry Metrics
+  - job_name: 'shop-sync-api-otel'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['shop-sync-api.railway.internal:9464']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'api'
+
+  # API - BullMQ Queue Metrics
+  - job_name: 'shop-sync-api-bullmq'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['shop-sync-api.railway.internal:9465']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'api'
+
+  # Worker - OpenTelemetry Metrics
+  - job_name: 'shop-sync-worker-otel'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['shop-sync-worker.railway.internal:9466']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'worker'
+
+  # Worker - BullMQ Queue Metrics
+  - job_name: 'shop-sync-worker-bullmq'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['shop-sync-worker.railway.internal:9467']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'worker'
+
